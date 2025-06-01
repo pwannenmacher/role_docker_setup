@@ -1,0 +1,17 @@
+---
+- name: Login into private registry {{ item.docker_registry_url }}
+  become: true
+  community.general.docker_login:
+    registry: "{{ item.docker_registry_url }}"
+    username: "{{ item.docker_registry_user }}"
+    password: "{{ item.docker_registry_pass }}"
+    reauthorize: true
+  when: item.docker_registry_url is defined
+
+- name: Login into Docker registry
+  become: true
+  community.general.docker_login:
+    username: "{{ item.docker_registry_user }}"
+    password: "{{ item.docker_registry_pass }}"
+    reauthorize: true
+  when: item.docker_registry_url is not defined

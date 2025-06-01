@@ -1,0 +1,127 @@
+---
+# tasks file for role_docker_setup
+- name: Ensure Ansible is running on a supported distribution.
+  ansible.builtin.fail:
+    msg: "This role is only supported on Ubuntu, Debian, Raspbian and Linux Mint."
+  when: ansible_distribution not in ['Ubuntu', 'Debian', 'Raspbian', 'Linux Mint']
+
+- name: Ensure Ansible is running on a supported distribution release.
+  ansible.builtin.fail:
+    msg: "This role is only supported on Ubuntu 20.04, 22.04, Debian 10, 11, Raspbian Buster, Bullseye, Bookworm and Linux Mint 20.x, 21.x."
+  when: ansible_distribution_release not in ['focal', 'bionic', 'bullseye', 'bookworm', 'jammy', 'noble']
+
+- name: Ensure old versions of Docker are not installed.
+  ansible.builtin.package:
+    name:
+      - docker
+      - docker-engine
+      - docker.io
+      - docker-doc
+      - docker-compose
+      - docker-compose-v2
+      - podman-docker
+      - containerd
+    state: absent
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install some prereqs
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - gnupg2
+      - grep
+      - gzip
+      - mawk
+      - curl
+      - python3-pip
+      - software-properties-common
+      - virtualenv
+      - python3-setuptools
+
+- name: Import Dockers official GPG key
+  ansible.builtin.get_url:
+    dest: /etc/apt/trusted.gpg.d/docker.asc
+    url: "{{ docker_apt_gpg_key }}"
+    mode: "0644"
+    force: true
+
+- name: Remove previous docker repository file
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/{{ item }}
+    state: absent
+  loop:
+    - docker-ce.list
+    - docker.list
+
+- name: Set architecture
+  ansible.builtin.set_fact:
+    docker_arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64' if ansible_architecture == 'aarch64' else ansible_architecture }}"
+
+- name: Add docker apt repo
+  ansible.builtin.apt_repository:
+    repo: "{{ docker_apt_repo }}"
+    filename: docker-ce
+    state: present
+  register: docker_repo_result
+  when: ansible_distribution in ['Ubuntu', 'Debian', 'Raspbian', 'Linux Mint'] and ansible_distribution_release in ['focal', 'bionic', 'bullseye', 'bookworm', 'jammy', 'noble']
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  when: docker_repo_result.changed
+
+- name: Create config directory with parent directories -> {{ docker_config_path }}
+  ansible.builtin.file:
+    path: "{{ docker_config_path }}"
+    state: directory
+    recurse: true
+
+- name: Create daemon.json
+  ansible.builtin.copy:
+    content: "{{ docker_daemon_options | to_nice_json | regex_replace('\"([0-9]+)\"','\\1') }}"
+    dest: "{{ docker_config_path }}/daemon.json"
+    mode: "0644"
+  notify: Restart docker
+
+- name: Install docker, docker-cli, containerd.io, docker-buildx-plugin and docker-compose-plugin
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+
+- name: Flush Handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Start and enable docker service
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Login into registries
+  ansible.builtin.include_tasks: docker-login.yml
+  loop: "{{ docker_logins }}"
+
+- name: Ensure docker users are added to the docker group.
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  with_items: "{{ (docker_users + [ansible_ssh_user, ansible_user_id]) | unique }}"
+  when: ansible_ssh_user is defined
+
+- name: Ensure docker users are added to the docker group.
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  with_items: "{{ (docker_users + [ansible_user_id]) | unique }}"
