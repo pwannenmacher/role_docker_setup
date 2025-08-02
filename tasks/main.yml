@@ -42,6 +42,7 @@
       - software-properties-common
       - virtualenv
       - python3-setuptools
+      - python3-netaddr
 
 - name: Import Dockers official GPG key
   ansible.builtin.get_url:
