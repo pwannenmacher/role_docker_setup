@@ -117,8 +117,8 @@
     name: "{{ item }}"
     groups: docker
     append: true
-  with_items: "{{ (docker_users + [ansible_ssh_user, ansible_user_id]) | unique }}"
-  when: ansible_ssh_user is defined
+  with_items: "{{ (docker_users + [ansible_user, ansible_user_id]) | unique }}"
+  when: ansible_user is defined
 
 - name: Ensure docker users are added to the docker group.
   ansible.builtin.user:

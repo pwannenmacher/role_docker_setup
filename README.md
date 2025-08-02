@@ -59,7 +59,7 @@ docker_logins:
   - docker_registry_url: "registry.private.com"
     docker_registry_user: "registry-user"
     docker_registry_pass: "registry-user-password"
-# the ansible_ssh_user is added to the docker group by default
+# the ansible_user is added to the docker group by default
 
 ##################################
 # Allow non-sudo usage for users #
