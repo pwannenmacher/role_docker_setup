@@ -2,7 +2,7 @@
 galaxy_info:
   role_name: role_docker_setup
   author: Paul Wannenmacher
-  description: Installs Docker on Hosts, configures the deamon and sets up a database backup job
+  description: Installs Docker on Hosts, configures the daemon and sets up a database backup job
   company: Wannenmacher
 
   issue_tracker_url: https://git.wannenmacher.org/wannenmacher/ansible/-/issues
