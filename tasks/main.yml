@@ -68,14 +68,11 @@
     repo: "{{ docker_apt_repo }}"
     filename: docker-ce
     state: present
-  register: docker_repo_result
+  notify: Update apt cache
   when: ansible_distribution in ['Ubuntu', 'Debian', 'Raspbian', 'Linux Mint'] and ansible_distribution_release in ['focal', 'bionic', 'bullseye', 'bookworm', 'jammy', 'noble']
 
-- name: Update apt cache
-  ansible.builtin.apt:
-    update_cache: true
-    cache_valid_time: 3600
-  when: docker_repo_result.changed
+- name: Force all notified handlers to run at this point
+  ansible.builtin.meta: flush_handlers
 
 - name: Create config directory with parent directories -> {{ docker_config_path }}
   ansible.builtin.file:
@@ -85,7 +82,7 @@
 
 - name: Create daemon.json
   ansible.builtin.copy:
-    content: "{{ docker_daemon_options | to_nice_json | regex_replace('\"([0-9]+)\"','\\1') }}"
+    content: "{{ docker_daemon_options | to_nice_json | regex_replace('\"([0-9]+)\"', '\\1') }}"
     dest: "{{ docker_config_path }}/daemon.json"
     mode: "0644"
   notify: Restart docker
