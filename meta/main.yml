@@ -29,5 +29,4 @@ galaxy_info:
     - ubuntu
     - debian
 
-dependencies:
-  - name: community.general
+dependencies: []
