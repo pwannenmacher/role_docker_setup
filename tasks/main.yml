@@ -7,8 +7,8 @@
 
 - name: Ensure Ansible is running on a supported distribution release.
   ansible.builtin.fail:
-    msg: "This role is only supported on Ubuntu 20.04, 22.04, Debian 10, 11, Raspbian Buster, Bullseye, Bookworm and Linux Mint 20.x, 21.x."
-  when: ansible_distribution_release not in ['focal', 'bionic', 'bullseye', 'bookworm', 'jammy', 'noble']
+    msg: "This role is only supported on Ubuntu 20.04 (focal), 22.04 (jammy), 24.04 (noble), Debian 11 (bullseye), 12 (bookworm), 13 (trixie) and their derivatives."
+  when: ansible_distribution_release not in ['focal', 'jammy', 'noble', 'bullseye', 'bookworm', 'trixie']
 
 - name: Ensure old versions of Docker are not installed.
   ansible.builtin.package:
