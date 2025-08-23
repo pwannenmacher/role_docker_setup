@@ -39,7 +39,6 @@
       - mawk
       - curl
       - python3-pip
-      - software-properties-common
       - virtualenv
       - python3-setuptools
       - python3-netaddr
