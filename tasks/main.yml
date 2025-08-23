@@ -68,7 +68,7 @@
     filename: docker-ce
     state: present
   notify: Update apt cache
-  when: ansible_distribution in ['Ubuntu', 'Debian', 'Raspbian', 'Linux Mint'] and ansible_distribution_release in ['focal', 'bionic', 'bullseye', 'bookworm', 'jammy', 'noble']
+  when: ansible_distribution in ['Ubuntu', 'Debian', 'Raspbian', 'Linux Mint'] and ansible_distribution_release in ['focal', 'jammy', 'noble', 'bullseye', 'bookworm', 'trixie']
 
 - name: Force all notified handlers to run at this point
   ansible.builtin.meta: flush_handlers
