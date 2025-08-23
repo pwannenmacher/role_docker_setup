@@ -8,3 +8,4 @@ tmp/
 .vault.pw
 pass_*
 info_*
+.ansible/
