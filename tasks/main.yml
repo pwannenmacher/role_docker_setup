@@ -8,7 +8,7 @@
 - name: Ensure Ansible is running on a supported distribution release.
   ansible.builtin.fail:
     msg: "This role is only supported on Ubuntu 20.04 (focal), 22.04 (jammy), 24.04 (noble), Debian 11 (bullseye), 12 (bookworm), 13 (trixie) and their derivatives."
-  when: ansible_distribution_release not in ['focal', 'jammy', 'noble', 'bullseye', 'bookworm', 'trixie']
+  when: ansible_facts['distribution_release'] not in ['focal', 'jammy', 'noble', 'bullseye', 'bookworm', 'trixie']
 
 - name: Ensure old versions of Docker are not installed.
   ansible.builtin.package:
@@ -60,7 +60,7 @@
 
 - name: Set architecture
   ansible.builtin.set_fact:
-    docker_arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64' if ansible_architecture == 'aarch64' else ansible_architecture }}"
+    docker_arch: "{{ 'amd64' if ansible_facts['architecture'] == 'x86_64' else 'arm64' if ansible_facts['architecture'] == 'aarch64' else ansible_facts['architecture'] }}"
 
 - name: Add docker apt repo
   ansible.builtin.apt_repository:
@@ -68,7 +68,7 @@
     filename: docker-ce
     state: present
   notify: Update apt cache
-  when: ansible_distribution in ['Ubuntu', 'Debian', 'Raspbian', 'Linux Mint'] and ansible_distribution_release in ['focal', 'jammy', 'noble', 'bullseye', 'bookworm', 'trixie']
+  when: ansible_facts['distribution'] in ['Ubuntu', 'Debian', 'Raspbian', 'Linux Mint'] and ansible_facts['distribution_release'] in ['focal', 'jammy', 'noble', 'bullseye', 'bookworm', 'trixie']
 
 - name: Force all notified handlers to run at this point
   ansible.builtin.meta: flush_handlers
@@ -113,12 +113,12 @@
     name: "{{ item }}"
     groups: docker
     append: true
-  with_items: "{{ (docker_users + [ansible_user, ansible_user_id]) | unique }}"
-  when: ansible_user is defined
+  with_items: "{{ (docker_users + [ansible_facts['user'], ansible_facts['user_id']]) | unique }}"
+  when: ansible_facts['user'] is defined
 
 - name: Ensure docker users are added to the docker group.
   ansible.builtin.user:
     name: "{{ item }}"
     groups: docker
     append: true
-  with_items: "{{ (docker_users + [ansible_user_id]) | unique }}"
+  with_items: "{{ (docker_users + [ansible_facts['user_id']]) | unique }}"
