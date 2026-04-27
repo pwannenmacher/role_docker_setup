@@ -1,5 +1,5 @@
 ---
-- name: Login into private registry {{ item.docker_registry_url }}
+- name: Login into private registry {{ item.docker_registry_url | default('docker.io') }}
   become: true
   community.general.docker_login:
     registry: "{{ item.docker_registry_url }}"
